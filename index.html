@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tabela Itens Correção</title>
+<style>
+:root{--bg:#fafaf9;--surface:#fff;--text:#1c1c1e;--muted:#8a8a90;--line:#ececee;--edit:#3b4a63;--hint:#d4d6dc;--accent:#1c1c1e;--red-bg:#fdecec;--red:#b4443d;--green-bg:#e6f6ec;--green:#2a7a4b;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#121214;--surface:#1a1a1d;--text:#ececee;--muted:#85858c;--line:#2a2a2f;--edit:#a9b8d4;--hint:#3a3a42;--accent:#ececee;--red-bg:#3a1f1f;--red:#f0908a;--green-bg:#183326;--green:#7fd1a1}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px 20px 64px;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+main{max-width:1360px;margin:0 auto}
+button{font:inherit;cursor:pointer;border:none;background:none;color:var(--muted);padding:6px 10px;border-radius:8px;font-size:13px;transition:background .15s,color .15s}
+button:hover{background:var(--line);color:var(--text)}
+.primary{background:var(--accent);color:var(--bg)}
+.primary:hover{background:var(--accent);color:var(--bg);opacity:.85}
+.danger{color:var(--red)}
+.topbar{display:flex;justify-content:flex-end;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-bottom:18px;flex-wrap:wrap}
+#st.err{color:var(--red)}
+.proj{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}
+.proj .lab{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.pname{font-size:28px;font-weight:600;letter-spacing:-.02em}
+.pctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#tables{display:flex;flex-direction:column;gap:28px}
+.card{background:var(--surface);border-radius:16px;padding:24px 28px 14px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.04)}
+.head{margin-bottom:12px}
+.title{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.title .lbl{color:var(--muted);font-weight:400}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:780px}
+th{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+td{padding:12px 8px;border-bottom:1px solid var(--line);vertical-align:top;font-size:15px;line-height:1.45}
+tr:last-child td{border-bottom:none}
+.e{color:var(--edit);outline:none;display:block;min-width:36px;white-space:pre-wrap;border-radius:4px;border-bottom:1px dotted var(--hint);padding:0 2px;transition:background .15s}
+.e:hover,.e:focus{background:var(--line)}
+.e:focus{border-bottom-color:var(--edit)}
+.e:empty::before{content:attr(data-ph);color:var(--muted);opacity:.6;pointer-events:none}
+.chk{text-align:center;width:90px}
+input[type=checkbox]{appearance:none;width:20px;height:20px;border:1.5px solid var(--hint);border-radius:50%;cursor:pointer;margin:0;display:inline-grid;place-content:center;transition:all .15s}
+input[type=checkbox]:checked{background:var(--green);border-color:var(--green);animation:pop .25s}
+@keyframes pop{50%{transform:scale(1.25)}}
+input[type=checkbox]:checked::after{content:"";width:5px;height:9px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+tr.done td{background:var(--green-bg)}
+tr.done td:first-child{box-shadow:inset 3px 0 0 var(--green)}
+tr.done .e{opacity:.6}
+tr.done td:nth-child(2) .e{text-decoration:line-through;text-decoration-color:var(--green)}
+select{font:inherit;font-size:13px;color:var(--edit);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;outline:none;max-width:220px}
+td.x{width:28px;padding:12px 0 12px 4px;text-align:center}
+td.x button{opacity:0;padding:2px 6px;font-size:14px}
+tr:hover td.x button{opacity:1}
+.foot{display:flex;justify-content:space-between;align-items:center;padding-top:8px}
+.empty{color:var(--muted);text-align:center;padding:40px;font-size:14px}
+.imgc{width:64px;height:48px;border-radius:8px;position:relative;outline:none;display:flex;align-items:center;justify-content:center}
+.imgc img{width:100%;height:100%;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--line);background:var(--line)}
+.imgc.empty-img{border:1px dashed var(--hint);flex-direction:column;font-size:10px;color:var(--muted);cursor:pointer;width:84px;gap:2px}
+.imgc:focus{box-shadow:0 0 0 2px var(--edit)}
+.pick{cursor:pointer;text-decoration:underline;font-size:10px}
+.rmimg{position:absolute;top:-6px;right:-6px;width:18px;height:18px;padding:0;border-radius:50%;background:var(--surface);border:1px solid var(--line);font-size:10px;line-height:1}
+@media (hover:hover){.rmimg{opacity:0}.imgc:hover .rmimg,.imgc:focus .rmimg{opacity:1}}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:50;cursor:zoom-out;padding:20px}
+#lb img{max-width:96vw;max-height:92vh;border-radius:8px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:13px;display:none;z-index:60;max-width:90vw}
+/* login */
+#auth{min-height:80vh;display:flex;align-items:center;justify-content:center}
+.box{background:var(--surface);border-radius:16px;padding:32px;width:100%;max-width:380px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06)}
+.box h1{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.box p{margin:0 0 20px;color:var(--muted);font-size:13px}
+.box label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.box input{width:100%;font:inherit;font-size:15px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}
+.box input:focus{border-color:var(--edit)}
+.box .primary{width:100%;margin-top:20px;padding:11px;font-size:14px}
+.links{display:flex;justify-content:space-between;margin-top:14px}
+.links button{padding:4px 0;font-size:13px}
+#autherr{color:var(--red);font-size:13px;margin-top:12px;min-height:16px}
+.banner{background:var(--surface);border-radius:12px;padding:12px 16px;margin-bottom:20px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+</style>
+</head>
+<body>
+
+<div id="auth" hidden>
+  <form class="box" id="authform" autocomplete="on">
+    <h1 id="atitle">Entrar</h1>
+    <p id="asub">Acesse com seu e-mail e senha.</p>
+    <label for="em">E-mail</label>
+    <input id="em" type="email" autocomplete="email" required>
+    <label for="pw">Senha</label>
+    <input id="pw" type="password" autocomplete="current-password" minlength="6" required>
+    <div id="cfwrap" hidden><label for="pw2">Confirmar senha</label>
+    <input id="pw2" type="password" autocomplete="new-password" minlength="6"></div>
+    <button class="primary" id="asubmit" type="submit">Entrar</button>
+    <div id="autherr"></div>
+    <div class="links"><button type="button" id="toggle">Criar novo acesso</button><button type="button" id="forgot">Esqueci a senha</button></div>
+  </form>
+</div>
+
+<main id="app" hidden>
+  <div class="topbar"><span id="who"></span><span id="st"></span><button id="out">Sair</button></div>
+  <div id="banner"></div>
+  <div class="proj">
+    <div><div class="lab">Projeto</div><span class="e pname" id="pname" contenteditable data-ph="Nome do projeto"></span></div>
+    <div class="pctl" id="pctl"></div>
+  </div>
+  <div id="tables"></div>
+  <div style="margin-top:24px"><button class="primary" id="addTable">+ Nova tabela</button></div>
+</main>
+<div id="lb"><img alt=""></div>
+<div id="toast"></div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {getFirestore,collection,getDocs,doc,getDoc,setDoc,deleteDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyCNfPx_rcw9pViq1LtNF8gftkRUafFUxT0",
+  authDomain:"issues-80731.firebaseapp.com",
+  projectId:"issues-80731",
+  storageBucket:"issues-80731.firebasestorage.app",
+  messagingSenderId:"219332526402",
+  appId:"1:219332526402:web:756083b767b63eefd5c8db"
+};
+const fbApp=initializeApp(firebaseConfig),auth=getAuth(fbApp),db=getFirestore(fbApp);
+const $=id=>document.getElementById(id);
+const uuid=()=>(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2));
+
+/* ---------- login ---------- */
+let mode="login";
+function setMode(m){
+  mode=m;const c=m==="cadastro";
+  $("atitle").textContent=c?"Criar novo acesso":"Entrar";
+  $("asub").textContent=c?"Informe um e-mail e crie uma senha.":"Acesse com seu e-mail e senha.";
+  $("asubmit").textContent=c?"Criar acesso":"Entrar";
+  $("toggle").textContent=c?"Já tenho acesso":"Criar novo acesso";
+  $("forgot").hidden=c;$("cfwrap").hidden=!c;$("pw2").required=c;
+  $("pw").autocomplete=c?"new-password":"current-password";
+  $("autherr").textContent="";
+}
+const AERR={
+  "auth/invalid-credential":"E-mail ou senha incorretos.",
+  "auth/wrong-password":"E-mail ou senha incorretos.",
+  "auth/user-not-found":"E-mail ou senha incorretos.",
+  "auth/invalid-email":"E-mail inválido.",
+  "auth/email-already-in-use":"Este e-mail já tem cadastro. Use “Já tenho acesso”.",
+  "auth/weak-password":"A senha precisa ter pelo menos 6 caracteres.",
+  "auth/too-many-requests":"Muitas tentativas. Aguarde um pouco e tente de novo.",
+  "auth/network-request-failed":"Sem conexão com a internet.",
+  "auth/operation-not-allowed":"O login por e-mail/senha ainda não foi ativado no Firebase (Authentication)."
+};
+const aerr=e=>AERR[e&&e.code]||("Erro: "+((e&&e.code)||e));
+$("toggle").onclick=()=>setMode(mode==="login"?"cadastro":"login");
+$("forgot").onclick=async()=>{
+  const em=$("em").value.trim();
+  if(!em){$("autherr").textContent="Digite seu e-mail acima e clique de novo.";return}
+  try{await sendPasswordResetEmail(auth,em);$("autherr").style.color="var(--green)";$("autherr").textContent="Enviamos um link de redefinição para o seu e-mail.";setTimeout(()=>{$("autherr").style.color=""},6000)}
+  catch(e){$("autherr").textContent=aerr(e)}
+};
+$("authform").addEventListener("submit",async e=>{
+  e.preventDefault();$("autherr").textContent="";
+  const em=$("em").value.trim(),pw=$("pw").value;
+  try{
+    if(mode==="cadastro"){
+      if(pw!==$("pw2").value){$("autherr").textContent="As senhas não conferem.";return}
+      await createUserWithEmailAndPassword(auth,em,pw);
+    }else await signInWithEmailAndPassword(auth,em,pw);
+  }catch(err){$("autherr").textContent=aerr(err)}
+});
+$("out").onclick=async()=>{await flushAll();await signOut(auth)};
+
+/* ---------- estado ---------- */
+const OLDKEY="tabelas-issues-v2";
+let uid=null,projects=[],curIdx=0,pendT=-1,pendP=false;
+const imgCache={},timers={},dirty=new Set();
+function newRow(){return{issue:"",desc:"",done:false,prancha:"",obs:"",img:""}}
+function newTable(){return{disc:"",rows:[newRow()]}}
+function newProject(){return{id:uuid(),name:"",tables:[newTable()],ordem:Date.now()}}
+function cur(){return projects[curIdx]}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function norm(p){
+  p.name=p.name||"";p.tables=Array.isArray(p.tables)?p.tables:[];
+  p.tables.forEach(t=>{t.disc=t.disc||"";t.rows=Array.isArray(t.rows)?t.rows:[];t.rows.forEach(r=>{["issue","desc","prancha","obs","img"].forEach(k=>{r[k]=r[k]||""});r.done=!!r.done})});
+  return p;
+}
+function setStatus(m,err){const s=$("st");s.textContent=m;s.className=err?"err":""}
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>{t.style.display="none"},5000)}
+
+/* ---------- salvar ---------- */
+const pref=()=>["usuarios",uid];
+function touch(p){dirty.add(p);setStatus("Salvando…");clearTimeout(timers[p.id]);timers[p.id]=setTimeout(()=>flush(p),700)}
+async function flush(p){
+  clearTimeout(timers[p.id]);dirty.delete(p);
+  try{await setDoc(doc(db,...pref(),"projetos",p.id),{name:p.name,tables:p.tables,ordem:p.ordem});if(!dirty.size)setStatus("Salvo ✓")}
+  catch(e){setStatus("Erro ao salvar",true);toast(e.code==="permission-denied"?"Sem permissão. Confira as regras do Firestore.":"Não foi possível salvar: "+(e.code||e))}
+}
+async function flushAll(){await Promise.all([...dirty].map(flush))}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")[...dirty].forEach(flush)});
+
+/* ---------- imagens ---------- */
+function shrink(file){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onerror=()=>rej(new Error("leitura"));
+    fr.onload=()=>{const im=new Image();
+      im.onerror=()=>rej(new Error("imagem"));
+      im.onload=()=>{
+        let out="";
+        for(const [M,q] of [[1100,.72],[900,.6],[700,.5]]){
+          const s=Math.min(1,M/Math.max(im.width,im.height));
+          const c=document.createElement("canvas");c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);
+          const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
+          out=c.toDataURL("image/jpeg",q);if(out.length<900000)break;
+        }
+        res(out);
+      };
+      im.src=fr.result};
+    fr.readAsDataURL(file);
+  });
+}
+async function putImg(data){const id=uuid();await setDoc(doc(db,...pref(),"imagens",id),{data});imgCache[id]=data;return id}
+async function getImg(id){
+  if(imgCache[id])return imgCache[id];
+  try{const s=await getDoc(doc(db,...pref(),"imagens",id));const d=s.exists()?s.data().data:"";imgCache[id]=d;return d}catch(e){return""}
+}
+function delImg(id){if(id){delete imgCache[id];deleteDoc(doc(db,...pref(),"imagens",id)).catch(()=>{})}}
+async function setImg(r,file){
+  try{
+    setStatus("Enviando imagem…");
+    const data=await shrink(file),id=await putImg(data),old=r.img;
+    r.img=id;delImg(old);touch(cur());render();
+  }catch(e){setStatus("Erro ao enviar imagem",true);toast("Não consegui enviar essa imagem.")}
+}
+function openLb(src){const lb=$("lb");lb.querySelector("img").src=src;lb.style.display="flex"}
+function buildImg(td,r){
+  const box=document.createElement("div");box.className="imgc";box.tabIndex=0;box._r=r;
+  if(r.img){
+    box.innerHTML='<img alt="Imagem"><button class="rmimg" title="Remover imagem">✕</button>';
+    const im=box.querySelector("img");
+    getImg(r.img).then(d=>{im.src=d});
+    im.addEventListener("click",()=>{if(im.src)openLb(im.src)});
+    box.querySelector(".rmimg").addEventListener("click",e=>{e.stopPropagation();delImg(r.img);r.img="";touch(cur());render()});
+  }else{
+    box.className+=" empty-img";
+    box.innerHTML='<span>Ctrl+V</span><label class="pick">ou arquivo<input type="file" accept="image/*" hidden></label>';
+    box.querySelector("input").addEventListener("change",e=>{const f=e.target.files[0];if(f)setImg(r,f)});
+  }
+  box.addEventListener("dragover",e=>e.preventDefault());
+  box.addEventListener("drop",e=>{const f=e.dataTransfer&&e.dataTransfer.files[0];if(f&&f.type.indexOf("image")===0){e.preventDefault();setImg(r,f)}});
+  td.appendChild(box);
+}
+document.addEventListener("paste",e=>{
+  const ae=document.activeElement;if(ae&&ae.isContentEditable)return;
+  const box=document.querySelector(".imgc:focus")||document.querySelector(".imgc:hover");
+  if(!box)return;
+  const items=(e.clipboardData&&e.clipboardData.items)||[];
+  for(const it of items){if(it.type.indexOf("image")===0){e.preventDefault();setImg(box._r,it.getAsFile());return}}
+  toast("Não encontrei uma imagem copiada.");
+});
+$("lb").addEventListener("click",e=>{e.currentTarget.style.display="none"});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("lb").style.display="none"});
+
+/* ---------- interface ---------- */
+function bindEdit(el,set){
+  el.addEventListener("input",()=>{
+    if(el.innerText.trim()===""&&el.innerHTML!=="")el.innerHTML="";
+    set(el.innerText.trim()===""?"":el.innerText);touch(cur());
+  });
+  el.addEventListener("paste",e=>{e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData("text");document.execCommand("insertText",false,t)});
+}
+function dropTableImgs(t){t.rows.forEach(r=>delImg(r.img))}
+async function removeProject(){
+  const p=cur();
+  p.tables.forEach(dropTableImgs);
+  clearTimeout(timers[p.id]);dirty.delete(p);
+  try{await deleteDoc(doc(db,...pref(),"projetos",p.id))}catch(e){toast("Não consegui remover: "+(e.code||e))}
+  projects.splice(curIdx,1);
+  if(!projects.length){const n=newProject();projects.push(n);touch(n)}
+  curIdx=0;pendP=false;render();
+}
+function renderProject(){
+  $("pname").innerHTML=esc(cur().name);
+  const ctl=$("pctl");
+  ctl.innerHTML=`<select id="psel">${projects.map((p,i)=>`<option value="${i}"${i===curIdx?" selected":""}>${esc(p.name||"Projeto sem nome")}</option>`).join("")}</select>
+  <button id="newP" class="primary">+ Novo projeto</button><span id="rmP"></span>`;
+  ctl.querySelector("#psel").addEventListener("change",e=>{curIdx=+e.target.value;pendT=-1;pendP=false;render()});
+  ctl.querySelector("#newP").addEventListener("click",()=>{const n=newProject();projects.push(n);curIdx=projects.length-1;pendT=-1;pendP=false;touch(n);render();$("pname").focus()});
+  const rm=ctl.querySelector("#rmP");
+  if(pendP){
+    rm.innerHTML='<button class="danger ok">Confirmar remoção</button><button class="no">Cancelar</button>';
+    rm.querySelector(".ok").addEventListener("click",removeProject);
+    rm.querySelector(".no").addEventListener("click",()=>{pendP=false;renderProject()});
+  }else{
+    rm.innerHTML='<button>Remover projeto</button>';
+    rm.querySelector("button").addEventListener("click",()=>{pendP=true;renderProject()});
+  }
+}
+function render(){
+  renderProject();
+  const p=cur(),tables=p.tables,root=$("tables");root.innerHTML="";
+  if(!tables.length){root.innerHTML='<div class="empty">Nenhuma tabela neste projeto. Clique em “+ Nova tabela”.</div>';return}
+  tables.forEach((t,ti)=>{
+    const c=document.createElement("div");c.className="card";
+    c.innerHTML=`<div class="head"><div class="title"><span class="lbl">Disciplina:</span> <span class="e" style="display:inline" contenteditable data-ph="Nome da disciplina">${esc(t.disc)}</span></div></div>
+    <div class="scroll"><table><thead><tr><th>Issue</th><th>Descrição</th><th class="chk">Completo</th><th>Número da prancha</th><th>Observação</th><th>Imagem</th><th></th></tr></thead><tbody></tbody></table></div>
+    <div class="foot"><button class="add">+ Adicionar linha</button><span class="rm"></span></div>`;
+    bindEdit(c.querySelector(".title .e"),v=>{t.disc=v});
+    const tb=c.querySelector("tbody");
+    t.rows.forEach((r,ri)=>{
+      const tr=document.createElement("tr");if(r.done)tr.className="done";
+      tr.innerHTML=`<td><span class="e" contenteditable data-ph="001">${esc(r.issue)}</span></td>
+      <td><span class="e" contenteditable data-ph="Descrição">${esc(r.desc)}</span></td>
+      <td class="chk"><input type="checkbox" ${r.done?"checked":""}></td>
+      <td><span class="e" contenteditable data-ph="Ex.: 05">${esc(r.prancha)}</span></td>
+      <td><span class="e" contenteditable data-ph="Observação">${esc(r.obs)}</span></td>
+      <td class="imgtd"></td>
+      <td class="x"><button title="Remover linha">✕</button></td>`;
+      const keys=["issue","desc","prancha","obs"];
+      tr.querySelectorAll(".e").forEach((el,i)=>bindEdit(el,v=>{r[keys[i]]=v}));
+      tr.querySelector("input").addEventListener("change",e=>{r.done=e.target.checked;tr.classList.toggle("done",r.done);touch(cur())});
+      buildImg(tr.querySelector(".imgtd"),r);
+      tr.querySelector(".x button").addEventListener("click",()=>{delImg(r.img);t.rows.splice(ri,1);touch(cur());render()});
+      tb.appendChild(tr);
+    });
+    c.querySelector(".add").addEventListener("click",()=>{t.rows.push(newRow());touch(cur());render()});
+    const rm=c.querySelector(".rm");
+    if(pendT===ti){
+      rm.innerHTML='<button class="danger ok">Confirmar remoção</button><button class="no">Cancelar</button>';
+      rm.querySelector(".ok").addEventListener("click",()=>{dropTableImgs(t);tables.splice(ti,1);pendT=-1;touch(cur());render()});
+      rm.querySelector(".no").addEventListener("click",()=>{pendT=-1;render()});
+    }else{
+      rm.innerHTML='<button>Remover tabela</button>';
+      rm.querySelector("button").addEventListener("click",()=>{pendT=ti;render()});
+    }
+    root.appendChild(c);
+  });
+}
+bindEdit($("pname"),v=>{
+  cur().name=v;
+  const o=document.querySelector("#psel option:checked");if(o)o.textContent=v||"Projeto sem nome";
+});
+$("addTable").addEventListener("click",()=>{cur().tables.push(newTable());pendT=-1;touch(cur());render()});
+
+/* ---------- dados locais antigos ---------- */
+function localData(){
+  try{const d=JSON.parse(localStorage.getItem(OLDKEY)||"null");
+    if(d&&Array.isArray(d.projects)&&d.projects.some(p=>p.tables&&p.tables.some(t=>t.disc||t.rows.some(r=>r.issue||r.desc||r.obs||r.prancha||r.img))))return d}catch(e){}
+  return null;
+}
+function showBanner(){
+  const d=localData(),b=$("banner");b.innerHTML="";
+  if(!d||localStorage.getItem("importado-"+uid))return;
+  b.innerHTML='<div class="banner"><span>Encontrei dados salvos neste navegador. Deseja importar para a sua conta?</span><span><button class="primary" id="imp">Importar</button> <button id="noimp">Agora não</button></span></div>';
+  $("noimp").onclick=()=>{b.innerHTML=""};
+  $("imp").onclick=async()=>{
+    $("imp").disabled=true;setStatus("Importando…");
+    try{
+      for(const lp of d.projects){
+        const p=norm({id:uuid(),name:lp.name,tables:lp.tables,ordem:Date.now()+projects.length});
+        for(const t of p.tables)for(const r of t.rows){
+          if(r.img&&r.img.indexOf("data:")===0)r.img=await putImg(r.img);else r.img="";
+        }
+        projects.push(p);await flush(p);
+      }
+      try{localStorage.setItem("importado-"+uid,"1")}catch(e){}
+      b.innerHTML="";curIdx=projects.length-1;render();setStatus("Importado ✓");
+    }catch(e){setStatus("Erro ao importar",true);toast("Falha ao importar: "+(e.code||e))}
+  };
+}
+
+/* ---------- carregar ---------- */
+async function load(){
+  setStatus("Carregando…");
+  try{
+    const snap=await getDocs(collection(db,...pref(),"projetos"));
+    projects=snap.docs.map(d=>norm({id:d.id,...d.data()})).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+    if(!projects.length){const n=newProject();projects.push(n);await flush(n)}
+    curIdx=0;pendT=-1;pendP=false;render();showBanner();setStatus("Salvo ✓");
+  }catch(e){
+    const m=e.code==="permission-denied"?"Sem permissão para ler os dados. Confira se as regras do Firestore foram publicadas.":
+      (e.code==="failed-precondition"||e.code==="not-found")?"O banco Firestore ainda não foi criado no Firebase.":"Não consegui carregar: "+(e.code||e);
+    setStatus("Erro ao carregar",true);
+    $("tables").innerHTML='<div class="empty">'+esc(m)+'<br><br><button class="primary" id="retry">Tentar de novo</button></div>';
+    $("retry").onclick=load;
+  }
+}
+onAuthStateChanged(auth,user=>{
+  if(user){
+    uid=user.uid;$("who").textContent=user.email;
+    $("auth").hidden=true;$("app").hidden=false;load();
+  }else{
+    uid=null;projects=[];dirty.clear();
+    $("app").hidden=true;$("auth").hidden=false;$("pw").value="";$("pw2").value="";setMode("login");
+  }
+});
+</script>
+</body>
+</html>
